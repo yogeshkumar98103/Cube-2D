@@ -278,6 +278,11 @@ function scramble(){
 // This functions brings the cube to initial (solved) state
 function reset(){
     cube = createAllMatrices();
+    for(let i = 0; i<6; i++){
+        for(let j = 0; j<8; j++){
+            changeColor(i,j);
+        }
+    }
 }
 
 var edges = [[[1,1],[0,5]], [[1,3],[5,7]], [[1,5],[2,1]], [[1,7],[4,3]],
@@ -376,6 +381,7 @@ function solveCube(){
     layer3Cross();
     layer3Corners();
     layer3AlignCorners();
+    layer3AllignEdges();
 }
 
 // First Layer
@@ -808,5 +814,57 @@ function layer3Corners(){
     layer3Corners();
 }
 function layer3AlignCorners(){
+    console.log('Layer 3 Allign Function Called');
+    // Check for correct pairs of corners
+    possibleLocations = [[[0,6],[0,4]], [[5,0],[5,6]], [[2,0],[2,2]], [[4,2],[4,4]]];
+    let found = false;
+    let pos;
+    let i = 0;
+    for(let location of possibleLocations){
+        if(cube[location[0][0]][location[0][1]] === cube[location[1][0]][location[1][1]]){
+            // Matching corner found
+            if(found){
+                finalAllignCorners();
+                return;
+            }
+            pos = i;
+            found = true;
+        }
+
+        i++;
+    }
+
+    if(found){
+        console.log('Allign Before Move');
+        switch(pos){
+            case 1: moveCombination(['Fi']);        break;
+            case 2: moveCombination(['F','F']);     break;
+            case 3: moveCombination(['F']);         break;
+        }
+    }
+
+    moveCombination(['Ri','D','Ri','U','U','R','Di','Ri','U','U','R','R']);
+
+    if(found){
+        // Allign Corners
+        finalAllignCorners();
+    }
+    else{
+        layer3AlignCorners();
+    }
+}
+function finalAllignCorners(){
+    console.log('Final Allign')
+
+        let color = cube[0][6];
+        switch(color){
+            case 4: moveCombination(['Fi']);        break;
+            case 5: moveCombination(['F']);         break;
+            case 2: moveCombination(['F','F']);     break;
+        }
+}
+function layer3AllignEdges(){
 
 }
+
+// ["B", "U", "D", "Ri", "D", "D", "L", "R", "F", "R", "Di", "Fi", "Di", "R", "Bi", "R", "Ri", "F", "Ri", "Fi"]
