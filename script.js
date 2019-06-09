@@ -374,15 +374,16 @@ function solveCube(){
 
     // Layer 3
     layer3Cross();
+    layer3Corners();
+    layer3AlignCorners();
 }
 
-// Layer 1
+// First Layer
 function layer1(){
     layer1Cross();
     layer1Corners();
 }
 
-// Orange Cross
 function layer1Cross(){
     let edge = findEdge('orange','white');
     
@@ -519,8 +520,6 @@ function layer1Cross(){
     }
     moveCombination(['B']);
 }
-
-// Orange Corners
 function layer1Corners(){
     let cornerColors = [['white','blue'],['blue','yellow'],['yellow','green'],['green','white']];
     let pos, matchPos;
@@ -598,6 +597,7 @@ function layer1Corners(){
     }
 }
 
+
 // Second Layer
 function layer2Edges(){
     let edgeColors = [['white','blue'], ['blue','yellow'],['yellow','green'],['green','white']];
@@ -617,13 +617,13 @@ function layer2Edges(){
             let finalPosition, currentPosition;
             
             let matchColor,turnColor;
-            if(color1 == 'red'){
+            if(color1 ==='red'){
                 finalPosition = finalPositions[color[1]];
                 currentPosition = pos1;
                 matchColor = color[1];
                 turnColor = color[0]
             }
-            else if(color2 == 'red'){
+            else if(color2 === 'red'){
                 finalPosition = finalPositions[color[0]];
                 currentPosition = pos2;
                 matchColor = color[0];
@@ -638,6 +638,7 @@ function layer2Edges(){
                 // Incorrectly Oriennted
                 incompleteEdges.push(color)
                 if(noEdgesOnTop){
+                    console.log("No Edges on Top");
                     if(color1 === 'white' && color2 === 'blue' || color1 === 'blue' && color2 === 'white'){
                         rotateCube('right');
                         moveCombination(['R','Ui','Ri','Ui','Fi','U','F']);
@@ -651,10 +652,11 @@ function layer2Edges(){
                     else if(color1 === 'yellow' && color2 === 'green' || color1 === 'green' && color2 === 'yellow'){
                         moveCombination(['Li','U','L','U','F','Ui','Fi']);
                     }
-                    else if(color1 === 'yellow' && color2 === 'green' || color1 === 'green' && color2 === 'yellow'){
+                    else if(color1 === 'yellow' && color2 === 'blue' || color1 === 'blue' && color2 === 'yellow'){
                         moveCombination(['R','Ui','Ri','Ui','Fi','U','F']);
                     }
                 }
+                continue;
             }
 
             let d = finalPosition - currentPosition;
@@ -681,7 +683,7 @@ function layer2Edges(){
             if(centreColors.indexOf(turnColor) == 4){
                 moveCombination(['Ui','Li','U','L','U','F','Ui','Fi']);
             }
-            else{
+            else if(centreColors.indexOf(turnColor) == 5){
                 moveCombination(['U','R','Ui','Ri','Ui','Fi','U','F']);
             }
             
@@ -695,35 +697,33 @@ function layer2Edges(){
         if(incompleteEdges.length === edgeColors.length){
             noEdgesOnTop = true;
         }
+        else{
+            noEdgesOnTop = false;
+        }
         edgeColors = incompleteEdges;
-        continue;
     }
 
     rotateCube('up');
 }
 
+
 // Third Layer
 function layer3Cross(){
-    // edgeColors = ['white','blue','yellow','green'];
+    console.log('Layer 3 Corners');
     edgePattern = [];
     for(let pos = 1; pos<8; pos+=2){
-        // let edge = findEdge('red', color);
-        let color1 = colors[cube[1][pos]];
 
-        if(color1 === 'red'){
+        if(colors[cube[1][pos]] === 'red'){
             edgePattern.push(pos);
-            console.log(pos);
         }
     }
 
     if(edgePattern.length === 4){
-        console.log('Cross')
         // Cross is already formed
         return;
     }
     
     if(edgePattern.length === 0){
-        console.log('blank pattern')
         moveCombination(['D','F','R','Fi','Ri','Di']);
         edgePattern = [1,5];
     }
@@ -731,7 +731,6 @@ function layer3Cross(){
     let d = Math.abs(edgePattern[0] - edgePattern[1]);
     console.log(edgePattern);
     if(d === 4){
-        console.log('- pattern');
         // minus pattern
         if(edgePattern[0] === 1){
             moveCombination(['F']);
@@ -741,7 +740,6 @@ function layer3Cross(){
     }
     else{
         // L pattern
-        console.log('L pattern');
         if(edgePattern[0] === 1 && edgePattern[1] === 3){
             moveCombination(['Fi']);
         }
@@ -754,9 +752,61 @@ function layer3Cross(){
         moveCombination(['D','F','R','Fi','Ri','Di']);
     }
 }
+function layer3Corners(){
+    console.log('Layer 3 Corners');
+    // Finding Corner Pattern
+    cornerPattern = [];
+    for(let index = 0; index < 8; index+=2){
+        if(colors[cube[1][index]] === 'red'){
+            cornerPattern.push(index);
+        }
+    }
 
-// Layer 2 crashes at
-// ["Ui", "Fi", "Ri", "D", "L", "Li", "Ri", "L", "Bi", "L", "R", "B", "Ri", "Ri", "Di", "Li", "Fi", "Ri", "Fi", "Di"]
-// ["R", "Ri", "D", "F", "F", "Fi", "L", "R", "Ui", "R", "D", "Ui", "B", "B", "D", "D", "Di", "Bi", "F", "Bi"]
-// ["U", "R", "D", "L", "D", "R", "Di", "L", "F", "D", "Ui", "Fi", "Li", "Fi", "Ui", "F", "F", "F", "R", "B"]
-// ["D", "L", "R", "Ri", "Li", "F", "R", "Ui", "Ui", "F", "R", "Li", "B", "F", "Li", "Li", "D", "Di", "D", "Li"]
+    switch(cornerPattern.length){
+        case 4 : // Top Corners are facing up
+                    return;
+
+        case 0 : // Search for red color on left
+                    let num = colorsIndex['red'];
+                    switch(num){
+                        case cube[4][2]:                                break;
+                        case cube[0][6]: moveCombination(['Fi']);       break;
+                        case cube[1][2]: moveCombination(['F']);        break;
+                        case cube[5][0]: moveCombination(['F','F']);    break;
+                    }
+
+                    break;
+
+        case 1 :    switch(cornerPattern[0]){
+                        case 0 : moveCombination(['Fi']);       break;
+                        case 2 : moveCombination(['F','F']);    break;
+                        case 4 : moveCombination(['F']);        break;
+                    }
+                    
+                    // If Color facing is red
+                    if(colors[cube[2][2]] === 'red'){
+                        moveCombination(['R','F','Ri','F','R','F','F','Ri']);
+                    }
+                    else{
+                        moveCombination(['Ui','Fi','U','Fi','Ui','Fi','Fi','U']);
+                    }
+                    return;
+
+        case 2 :    if(cornerPattern[1] - cornerPattern[0] != 4){
+                        // Red Corners are adjacent
+                        switch(cornerPattern[0]){
+                            case 2: moveCombination(['Fi']);        break;
+                            case 4: moveCombination(['F','F']);     break;
+                            case 6: moveCombination(['F']);         break;
+                        }
+                    }
+                    
+                    break;
+    }
+
+    moveCombination(['R','F','Ri','F','R','F','F','Ri']); 
+    layer3Corners();
+}
+function layer3AlignCorners(){
+
+}
