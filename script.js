@@ -1,28 +1,25 @@
 let cubeSize = 3;
-var colors = ["white", "red", "yellow", "orange", "green", "blue"];
-var colorsIndex = {white : 0, red : 1, yellow : 2, orange : 3, green: 4, blue : 5};
-let centreColors = colors;
+let colors = ["white", "red", "yellow", "orange", "green", "blue"];
+let colorsIndex = {white : 0, red : 1, yellow : 2, orange : 3, green: 4, blue : 5};
+var centreColors = colors;
+var globalMoveList = [];
 // For a given position in array representation of cube, this gives the corresponding location of div on canvas
 var position = [[0,0],[0,1],[0,2],[1,2],[2,2],[2,1],[2,0],[1,0]];
+let cube = createCubeMatrix();
+var displayCube = document.getElementById("cube");
+create2DCube();
 
-function createSide(color){
-    let arraySize = cubeSize * cubeSize - 1;
-    var matrix = [];
-    for(let i = 0; i < arraySize; i++){
-        matrix.push(color);
+function createCubeMatrix(){
+    var matrix = []
+    for(let i = 0; i < 6; i++){
+        var side = [];
+        for(let j = 0; j < 8; j++){
+            side.push(i);
+        }
+        matrix.push(side);
     }
     return matrix;
-}
-
-function createAllMatrices(){
-    var cube = []
-    for(let i = 0; i < 6; i++){
-        cube.push(createSide(i));
-    }
-    return cube;
 } 
-
-var cube = createAllMatrices();
 
 function create2DCube(){
     var cube = document.getElementById("cube");
@@ -59,9 +56,6 @@ function create2DCube(){
         cube.appendChild(newSide);
     }   
 }
-create2DCube();
-
-var displayCube = document.getElementById("cube");
 
 // This functions return the index of piece to be turned corresponding to a given move
 function orderOfIndices(moveType){
@@ -100,9 +94,8 @@ function swapOrder(order){
 }
 
 // This function performs a valid move on Cube
-function move(moveType, clockWise = true){
+function move(moveType, clockWise = true, moveOnCanvas = false){
     let order = orderOfIndices(moveType);
-
     if(!clockWise){
         swapOrder(order);
     }
@@ -123,7 +116,9 @@ function move(moveType, clockWise = true){
             cube[side1][pieceIndex1] = cube[side2][pieceIndex2];
 
             // Move cube on screen
-            changeColor(side1, pieceIndex1);
+            if(moveOnCanvas){
+                changeColor(side1, pieceIndex1);
+            } 
         }
     }
 
@@ -132,14 +127,16 @@ function move(moveType, clockWise = true){
         cube[side][order[3][1][i]] = temp[i];
 
         // Move cube on screen
-        changeColor(side, order[3][1][i])
+        if(moveOnCanvas){
+            changeColor(side, order[3][1][i])
+        }
     }
 
     // Rotate Main Side
-    rotateMainSide(order[4], clockWise);
+    rotateMainSide(order[4], clockWise, moveOnCanvas);
 }
 
-function rotateMainSide(sideIndex, clockWise){
+function rotateMainSide(sideIndex, clockWise, moveOnCanvas = false){
     temp = [];
     mainSide = cube[sideIndex];
 
@@ -167,14 +164,18 @@ function rotateMainSide(sideIndex, clockWise){
         mainSide[7] = temp[1];
     }
     
-    // Move Cube on screen
-    for(let i = 0; i < 8; i++){
-        changeColor(sideIndex, i);
+    if(moveOnCanvas){
+        // Move Cube on screen
+        for(let i = 0; i < 8; i++){
+            changeColor(sideIndex, i);
+        }
     }
 }
 
 function rotateCube(direction){
-    let newIndices = []
+    let newIndices = [];
+    globalMoveList.push(direction);
+
     console.log(direction);
     switch(direction){
         case 'left'  :  newIndices = [0,4,2,5,3,1];
@@ -235,54 +236,43 @@ function rotateCube(direction){
     cube = newCube;
     centreColors = newCentreColors;
 
-    // Reflect Changes on screen;
-    for(let i = 0; i<6; i++){
-        for(let j = 0; j<8; j++){
-            changeColor(i,j);
-        }
-        displayCube.children[i].children[1].children[1].style.backgroundColor = newCentreColors[i];
-    }
 }
 
 function moveCombination(moves){
-    console.log(moves);
     for(let m of moves){
+        globalMoveList.push(m);
         if(m.length == 2){ move(m[0], false);}
-        else{move(m);}
+        else{move(m)};
     }
 }
 
 // This functions scrambles Cube
+let scrambledCube = [[0],[0],[0],[0],[0],[0],];
 function scramble(){
     let num = 0, index;
-    let clockWise;
     let validMoves = ["R","L","F","B","U","D"];
     let list = [];
     for(let i = 0; i < 20; i++){
         num = Math.random()*6;
         index = Math.floor(num);
-        clockWise = (num-index) > 0.5 ? true : false;
-        move(validMoves[index], clockWise);
-
-        if(clockWise){
+        if((num-index) > 0.5){
             list.push(validMoves[index]);
-        }
-        else{
+        }else{
             list.push(validMoves[index] + 'i');
         }  
     }
-
-    console.log(list);
+    finalizeMoves(list, true);
 }
 
 // This functions brings the cube to initial (solved) state
 function reset(){
-    cube = createAllMatrices();
+    cube = createCubeMatrix();
     for(let i = 0; i<6; i++){
         for(let j = 0; j<8; j++){
             changeColor(i,j);
         }
     }
+    globalMoveList = [];
 }
 
 var edges = [[[1,1],[0,5]], [[1,3],[5,7]], [[1,5],[2,1]], [[1,7],[4,3]],
@@ -370,6 +360,8 @@ function findCorner(color1, color2, color3){
 
 // SOLVE CUBE
 function solveCube(){
+    globalMoveList = [];
+
     // Layer 1
     layer1Cross();
     layer1Corners();
@@ -380,8 +372,17 @@ function solveCube(){
     // Layer 3
     layer3Cross();
     layer3Corners();
-    layer3AlignCorners();
+    layer3AllignCorners();
     layer3AllignEdges();
+
+    // Perform Moves;
+    for(let i = 0; i < 6; i++){
+        for(let j = 0; j < 8; j++){
+            cube[i][j] = scrambledCube[i][j];
+        }
+    }
+    finalizeMoves(globalMoveList.slice(0));
+    globalMoveList = [];
 }
 
 // First Layer
@@ -644,7 +645,6 @@ function layer2Edges(){
                 // Incorrectly Oriennted
                 incompleteEdges.push(color)
                 if(noEdgesOnTop){
-                    console.log("No Edges on Top");
                     if(color1 === 'white' && color2 === 'blue' || color1 === 'blue' && color2 === 'white'){
                         rotateCube('right');
                         moveCombination(['R','Ui','Ri','Ui','Fi','U','F']);
@@ -714,8 +714,14 @@ function layer2Edges(){
 
 
 // Third Layer
+function layer3(){
+    layer3Cross();
+    layer3Corners();
+    layer3AllignCorners();
+    layer3AllignEdges();
+}
+
 function layer3Cross(){
-    console.log('Layer 3 Corners');
     edgePattern = [];
     for(let pos = 1; pos<8; pos+=2){
 
@@ -735,7 +741,6 @@ function layer3Cross(){
     }
     
     let d = Math.abs(edgePattern[0] - edgePattern[1]);
-    console.log(edgePattern);
     if(d === 4){
         // minus pattern
         if(edgePattern[0] === 1){
@@ -759,7 +764,6 @@ function layer3Cross(){
     }
 }
 function layer3Corners(){
-    console.log('Layer 3 Corners');
     // Finding Corner Pattern
     cornerPattern = [];
     for(let index = 0; index < 8; index+=2){
@@ -813,8 +817,7 @@ function layer3Corners(){
     moveCombination(['R','F','Ri','F','R','F','F','Ri']); 
     layer3Corners();
 }
-function layer3AlignCorners(){
-    console.log('Layer 3 Allign Function Called');
+function layer3AllignCorners(){
     // Check for correct pairs of corners
     possibleLocations = [[[0,6],[0,4]], [[5,0],[5,6]], [[2,0],[2,2]], [[4,2],[4,4]]];
     let found = false;
@@ -824,7 +827,7 @@ function layer3AlignCorners(){
         if(cube[location[0][0]][location[0][1]] === cube[location[1][0]][location[1][1]]){
             // Matching corner found
             if(found){
-                finalAllignCorners();
+                finalAllign();
                 return;
             }
             pos = i;
@@ -835,7 +838,6 @@ function layer3AlignCorners(){
     }
 
     if(found){
-        console.log('Allign Before Move');
         switch(pos){
             case 1: moveCombination(['Fi']);        break;
             case 2: moveCombination(['F','F']);     break;
@@ -847,15 +849,61 @@ function layer3AlignCorners(){
 
     if(found){
         // Allign Corners
-        finalAllignCorners();
+        finalAllign();
     }
     else{
-        layer3AlignCorners();
+        layer3AllignCorners();
     }
 }
-function finalAllignCorners(){
-    console.log('Final Allign')
+function layer3AllignEdges(){
+    possibleLocations = [[0,[4,5,6]], [5,[0,7,6]], [2,[0,1,2]], [4,[2,3,4]]];
+    let c1,c2,c3;
+    let pos;
+    let i = 0;
+    let found = false;
+    for(let location of possibleLocations){
+        c1 = cube[location[0]][location[1][0]];
+        c2 = cube[location[0]][location[1][1]];
+        c3 = cube[location[0]][location[1][2]];
 
+        if(c1 === c2 && c2 === c3){
+            // Side Found
+            if(found){
+                return;
+            }
+            pos = i;
+            found = true;
+        }
+        i++;
+    }
+
+    if(found){
+        // Take that side to back;
+        let moves = [];
+        switch(pos){
+            case 1 : moveCombination(['Fi']); break;
+            case 2 : moveCombination(['F','F']); break;
+            case 3 : moveCombination(['F']); break;
+        }
+    }
+
+    // Perform Move
+    c1 = cube[2][0];
+    c2 = cube[5][7];
+    if(c1 === c2){
+        moveCombination(['D','D','F','Ri','L','D','D','R','Li','F','D','D']);
+    }
+    else{
+        moveCombination(['D','D','Fi','Ri','L','D','D','R','Li','Fi','D','D']);
+    }
+
+    finalAllign();
+
+    if(!found){
+        layer3AllignEdges();
+    }
+}
+function finalAllign(){
         let color = cube[0][6];
         switch(color){
             case 4: moveCombination(['Fi']);        break;
@@ -863,8 +911,75 @@ function finalAllignCorners(){
             case 2: moveCombination(['F','F']);     break;
         }
 }
-function layer3AllignEdges(){
 
+function sleep(ms){
+    return new Promise(resolve => setTimeout(resolve,ms));
 }
 
-// ["B", "U", "D", "Ri", "D", "D", "L", "R", "F", "R", "Di", "Fi", "Di", "R", "Bi", "R", "Ri", "F", "Ri", "Fi"]
+// Finalize Moves
+async function finalizeMoves(moveList, copyToScrambledCube = false){
+    let finalMovesList = [];
+    let top = -1;
+    let rotationTable = {
+        'left'  :   {'F' : 'L', 'B' : 'R', 'U' : 'U', 'D' : 'D', 'R' : 'F', 'L' : 'B'},
+        'right' :   {'F' : 'R', 'B' : 'L', 'U' : 'U', 'D' : 'D', 'R' : 'B', 'L' : 'F'},
+        'up'    :   {'F' : 'U', 'B' : 'D', 'U' : 'B', 'D' : 'F', 'R' : 'R', 'L' : 'L'},
+        'down'  :   {'F' : 'D', 'B' : 'U', 'U' : 'F', 'D' : 'B', 'R' : 'R', 'L' : 'L'},
+    }
+    
+    let movesTable = {'F' : 'F', 'B' : 'B', 'U' : 'U', 'D' : 'D', 'R' : 'R', 'L' : 'L'};
+    let m;
+    for(let i = 0; i < moveList.length; i++){
+        m = moveList[i];
+        if(m.length < 3 && m !== 'up'){
+            if(m.length == 1 && (top === -1 || !areComplementary(finalMovesList[top],movesTable[m]))){
+                finalMovesList.push(movesTable[m]);
+                top++;  
+            }
+            else if(m.length == 2 && (top === -1 || !areComplementary(finalMovesList[top],movesTable[m[0]] + 'i'))){
+                finalMovesList.push(movesTable[m[0]].toLowerCase());
+                top++;
+            }
+            else{
+                finalMovesList.pop();
+                top--;
+            }
+        }
+        else{
+            newMovesTable = {};
+            for(let move in rotationTable[m]){
+                newMovesTable[move] = movesTable[rotationTable[m][move]];
+            }
+            movesTable = newMovesTable;
+        }
+    }
+    
+    for(let m of finalMovesList){
+        if(m.charCodeAt(0) >= 97){
+            // Lower Case
+            move(m.toUpperCase(), false, true);
+        }
+        else{
+            // Upper Case
+            move(m, true, true);
+        }
+        await sleep(500);
+    }
+
+    if(copyToScrambledCube){
+        for(let i = 0; i < 6; i++){
+            for(let j = 0; j < 8; j++){
+                scrambledCube[i][j] = cube[i][j];
+            }
+        }
+    }
+}
+
+function areComplementary(a, b){
+    let complementaryTable = {'b': 'B', 'B': 'Bi', 'f' : 'F', 'F' : 'Fi', 'u' : 'U', 'U' : 'Ui',
+                                'd' : 'D', 'D' : 'Di', 'r' : 'R', 'R' : 'Ri', 'l' : 'L', 'L' : 'Li'};
+    if(complementaryTable[a] === b){
+        return true;
+    }
+    return false;
+}

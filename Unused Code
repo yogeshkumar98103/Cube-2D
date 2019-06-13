@@ -58,3 +58,11 @@ function move2(moveType){
         index++;
     }
 }
+
+// Reflect Changes on screen;
+        for(let i = 0; i<6; i++){
+            for(let j = 0; j<8; j++){
+                 changeColor(i,j);
+             }
+         displayCube.children[i].children[1].children[1].style.backgroundColor = newCentreColors[i];
+        }
