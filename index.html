@@ -5,11 +5,15 @@
     </head>
     <body>
         <main>
-            <div id = "cube"></div>
-            <div id = "control-panel">
+            <div class = "cube"></div>
+            <div class = "control-panel">
                 <button onclick = "reset()">Reset</button>
                 <button onclick = "scramble()">Scramble</button>
                 <button onclick = "solveCube()">Solve</button>
+                <div class="slider-container">
+                    <span class = "text speed-text"> Speed </span>
+                    <input type="range" min="50" max="1000" value="500" class="slider" id="myRange">
+                </div>
             </div>
         </main>
     </body>

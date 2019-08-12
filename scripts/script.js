@@ -6,8 +6,23 @@ var globalMoveList = [];
 // For a given position in array representation of cube, this gives the corresponding location of div on canvas
 var position = [[0,0],[0,1],[0,2],[1,2],[2,2],[2,1],[2,0],[1,0]];
 let cube = createCubeMatrix();
-var displayCube = document.getElementById("cube");
+var displayCube = document.querySelector(".cube");
 create2DCube();
+
+var inputTimer;
+var doneInterval = 300;
+let moveSpeed = 500;
+
+var slider = document.getElementById("myRange");
+slider.oninput = function(){
+    clearTimeout(inputTimer);
+    inputTimer = setTimeout(newSpeed, doneInterval);
+}
+
+function newSpeed(){
+    moveSpeed = slider.value
+}
+
 
 function createCubeMatrix(){
     var matrix = []
@@ -22,7 +37,7 @@ function createCubeMatrix(){
 } 
 
 function create2DCube(){
-    var cube = document.getElementById("cube");
+    var cube = document.querySelector(".cube");
     let pieceWidth = 40;
     let sideSize = (pieceWidth + 5) * cubeSize + 10;
     let top = 40;
@@ -963,7 +978,7 @@ async function finalizeMoves(moveList, copyToScrambledCube = false){
             // Upper Case
             move(m, true, true);
         }
-        await sleep(500);
+        await sleep(moveSpeed);
     }
 
     if(copyToScrambledCube){

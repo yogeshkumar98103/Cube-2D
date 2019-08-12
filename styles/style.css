@@ -1,5 +1,42 @@
 body{
     background-color: aquamarine;
+    padding: 0;
+    margin: 0;
+}
+
+main{
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    width: 100%;
+    height: 100%;
+}
+
+.cube{
+    position: relative;
+}
+
+.control-panel{
+    background:#333;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.control-panel button{
+    font-weight: 600;
+    font-size: 20px;
+    background-color: #22BB22;
+    outline: none;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    transition: .15s all linear;
+}
+
+.control-panel button:hover{
+    cursor: pointer;
+    background: #DDD;
 }
 
 .piece{
@@ -23,11 +60,53 @@ body{
     transform: translate(-50%,0%);
 }
 
-#control-panel{
-    position: absolute;
-    top:0;
-    left: 0;
-    height: 100%;
-    width: 20%;
-    background: white;
+.speed-text{
+    color: white;
+    font-weight: 600;
+    font-size: 20px;
+    text-transform: uppercase;
+}
+
+.slider-container {
+    display: grid;
+    grid-template-columns: 4fr 6fr;
+    width: 80%;
+    position: relative;
+}
+  
+.slider {
+    grid-column: 2/3;
+    width: 100%; 
+    height: 15px;
+    align-self: center;
+    -webkit-appearance: none; 
+    appearance: none;
+    border-radius: 15px;
+    background: #BBB; 
+    outline: none; 
+    opacity: 0.8; 
+    -webkit-transition: .2s; 
+    transition: opacity .2s;
+} 
+  
+.slider:hover {
+    opacity: 1; 
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; 
+    appearance: none;
+    width: 15px; 
+    height: 15px; 
+    border-radius: 50%;
+    background: #22BB22;
+    cursor: pointer; 
+}
+
+.slider::-moz-range-thumb {
+    width: 15px; 
+    height: 15px; 
+    border-radius: 50%;
+    background: #22BB22;
+    cursor: pointer;
 }
