@@ -1,19 +1,17 @@
 <html>
     <head>
         <title> Rubik's Cube </title>
-        <link rel="stylesheet" type = "text/css" href="style.css">
+        <link rel="stylesheet" type = "text/css" href="styles/style.css">
     </head>
     <body>
-        <div id = "cube">
-        </div>
-        <div id = "control">
-            <button onclick = "reset()">Reset</button>
-            <button onclick = "scramble()">Scramble</button>
-            <button onclick = "solveCube()">Solve</button>
-            <button onclick = "layer1()">Layer1</button>
-            <button onclick = "layer2Edges()">Layer2</button>
-            <button onclick = "layer3()">Layer 3</button>
-        </div>
+        <main>
+            <div id = "cube"></div>
+            <div id = "control-panel">
+                <button onclick = "reset()">Reset</button>
+                <button onclick = "scramble()">Scramble</button>
+                <button onclick = "solveCube()">Solve</button>
+            </div>
+        </main>
     </body>
-    <script src = "script.js"></script>
+    <script src = "scripts/script.js"></script>
 </html>
